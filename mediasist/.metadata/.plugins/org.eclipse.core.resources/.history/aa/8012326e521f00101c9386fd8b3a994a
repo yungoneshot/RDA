@@ -1,0 +1,116 @@
+package mediasist;
+
+import java.awt.EventQueue;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+import javax.swing.JFrame;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+
+public class UnosPacijent extends JFrame {
+	
+	private JTextField imeField, prezimeField, dobField;
+	private JComboBox<String> spolCombo;
+	private String username;
+	
+	public UnosPacijent(Sting username) {
+		this.username=username;
+		
+        setTitle("Unos Podataka o Pacijentu");
+        setSize(400, 300);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setLayout(new GridLayout(6, 2, 10, 10));
+
+        add(new JLabel("Ime:"));
+        imeField = new JTextField();
+        add(imeField);
+
+        add(new JLabel("Prezime:"));
+        prezimeField = new JTextField();
+        add(prezimeField);
+
+        add(new JLabel("Datum rođenja (YYYY-MM-DD):"));
+        dobField = new JTextField();
+        add(dobField);
+
+        add(new JLabel("Spol:"));
+        spolCombo = new JComboBox<>(new String[]{"Muško", "Žensko", "Drugo"});
+        add(spolCombo);	
+	}
+
+	private JFrame frame;
+
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					UnosPacijent window = new UnosPacijent();
+					window.frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the application.
+	 */
+	public UnosPacijent() {
+		initialize();
+	}
+	
+	private void saveData(String Ime_pacijent, String Prezime_pacijent, Date DOB_Pacijent, String Spol_pacijent) {
+        final String DB_URL = "jdbc:mysql://ucka.veleri.hr:3306/dsepic?useSSL=false&serverTimezone=UTC";
+        final String DB_USER = "dsepic";
+        final String DB_PASSWORD = "11";
+
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                String sql = "INSERT INTO PACIJENT (Ime_pacijent, Prezime_pacijent, DOB_Pacijent, Spol_pacijent, username)" + 
+            "VALUES (?,?,?,?,?)";
+                
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                stmt.setString(1, ime);
+                stmt.setString(2, prezime);
+                stmt.setString(3, Date.valueOf(dob));
+                stmt.setString(4, spol);
+                stmt.setString(5, username);
+                
+                stmt.executeUpdate();
+                
+                
+                ResultSet rs = pstmt.executeQuery();
+                return rs.next(); // login successful if any row is returned
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            statusLabel.setText("Database error.");
+            return false;
+        }
+    }
+
+	/**
+	 * Initialize the contents of the frame.
+	 */
+	private void initialize() {
+		frame = new JFrame();
+		frame.setBounds(100, 100, 450, 300);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	}
+
+}

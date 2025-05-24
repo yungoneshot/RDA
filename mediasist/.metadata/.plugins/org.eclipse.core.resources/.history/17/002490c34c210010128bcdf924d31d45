@@ -1,0 +1,52 @@
+package mediasist;
+
+import java.awt.EventQueue;
+
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.JTextField;
+import javax.swing.JButton;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import javax.swing.JScrollPane;
+
+//Improved notes class
+public class notes extends JFrame {
+private JTextArea notesArea;
+ 
+ public notes() {
+     setTitle("Notes");
+     setSize(500, 400);
+     setLocationRelativeTo(null);
+     
+     JPanel contentPane = new JPanel(new BorderLayout());
+     setContentPane(contentPane);
+     
+     notesArea = new JTextArea();
+     JScrollPane scrollPane = new JScrollPane(notesArea);
+     contentPane.add(scrollPane);
+     
+     JButton btnDone = new JButton("Done");
+     btnDone.addActionListener(e -> {
+         saveNotes(); // Add this method to save to database
+         dispose();
+         // Return to AppPage with proper constructor
+     });
+     
+     JPanel buttonPanel = new JPanel();
+     buttonPanel.add(btnDone);
+     contentPane.add(buttonPanel);
+     
+     loadNotes(); // Add this method to load existing notes
+ }
+ 
+ private void loadNotes() {
+     // Implement database loading
+ }
+ 
+ private void saveNotes() {
+     // Implement database saving
+ }
+}

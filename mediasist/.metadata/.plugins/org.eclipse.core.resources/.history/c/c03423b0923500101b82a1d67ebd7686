@@ -1,0 +1,150 @@
+package mediasist;
+
+import javax.swing.*;
+import java.awt.event.*;
+import java.sql.*;
+import java.awt.Font;
+
+public class register extends JFrame {
+
+    private JTextField usernameField;
+    private JPasswordField passwordField;
+    private JComboBox<String> roleComboBox;  // Role selection combo box
+    private JLabel statusLabel;
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            register window = new register();
+            window.setVisible(true);
+        });
+    }
+
+    public register() {
+        setTitle("Registracija");
+        setSize(800, 600);
+        setBounds(100, 100, 400, 350);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        getContentPane().setLayout(null);
+
+        JLabel lblRegister = new JLabel("Registracija");
+        lblRegister.setFont(new Font("Tahoma", Font.PLAIN, 16));
+        lblRegister.setBounds(28, 24, 120, 25);
+        getContentPane().add(lblRegister);
+
+        JLabel lblUsername = new JLabel("Username:");
+        lblUsername.setBounds(50, 60, 80, 25);
+        getContentPane().add(lblUsername);
+
+        usernameField = new JTextField();
+        usernameField.setBounds(150, 60, 180, 25);
+        getContentPane().add(usernameField);
+
+        JLabel lblPassword = new JLabel("Password:");
+        lblPassword.setBounds(50, 103, 80, 25);
+        getContentPane().add(lblPassword);
+
+        passwordField = new JPasswordField();
+        passwordField.setBounds(150, 103, 180, 25);
+        getContentPane().add(passwordField);
+
+        JLabel lblRole = new JLabel("Uloga:");
+        lblRole.setBounds(50, 146, 80, 25);
+        getContentPane().add(lblRole);
+
+        roleComboBox = new JComboBox<>(new String[] {"Zdravstveni radnik", "Pacijent"});
+        roleComboBox.setBounds(150, 146, 180, 25);
+        getContentPane().add(roleComboBox);
+
+        JButton btnRegister = new JButton("Registriraj se");
+        btnRegister.setBounds(150, 190, 120, 30);
+        getContentPane().add(btnRegister);
+
+        JButton btnBack = new JButton("Back");
+        btnBack.setBounds(50, 190, 80, 30);
+        getContentPane().add(btnBack);
+
+        statusLabel = new JLabel("");
+        statusLabel.setBounds(50, 230, 300, 25);
+        getContentPane().add(statusLabel);
+
+        btnBack.addActionListener(e -> {
+            dispose(); // Close register window
+            MainScreen.main(null); // Open main screen
+        });
+
+        btnRegister.addActionListener(e -> {
+            String username = usernameField.getText().trim();
+            String password = new String(passwordField.getPassword());
+            String role = (String) roleComboBox.getSelectedItem();
+
+            if (username.isEmpty() || password.isEmpty()) {
+                statusLabel.setText("Popunite sva polja.");
+                return;
+            }
+
+            boolean success = saveToDatabase(username, password, role);
+            if (success) {
+                statusLabel.setText("Uspješna registracija.");
+                clearFields();
+            } else {
+                statusLabel.setText("Greška pri registraciji.");
+            }
+        });
+    }
+
+    private void clearFields() {
+        usernameField.setText("");
+        passwordField.setText("");
+        roleComboBox.setSelectedIndex(0);
+    }
+
+    private boolean saveToDatabase(String username, String password, String role) {
+        final String DB_URL = "jdbc:mysql://ucka.veleri.hr:3306/dsepic?useSSL=false&serverTimezone=UTC";
+        final String DB_USER = "dsepic";
+        final String DB_PASSWORD = "11";
+
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+
+                // 1) Insert into generic users table (optional, if you have such a table)
+                String sqlUsers = "INSERT INTO users (username, password, role) VALUES (?, ?, ?)";
+                PreparedStatement pstmtUsers = conn.prepareStatement(sqlUsers, Statement.RETURN_GENERATED_KEYS);
+                pstmtUsers.setString(1, username);
+                pstmtUsers.setString(2, password);
+                pstmtUsers.setString(3, role);
+                pstmtUsers.executeUpdate();
+
+                // Get generated user ID if needed
+                ResultSet generatedKeys = pstmtUsers.getGeneratedKeys();
+                int userId = -1;
+                if (generatedKeys.next()) {
+                    userId = generatedKeys.getInt(1);
+                }
+
+                // 2) Insert into role-specific table
+                String sqlRoleTable = "";
+                if ("Zdravstveni radnik".equals(role)) {
+                    sqlRoleTable = "INSERT INTO ZDRAVSTVENI_RADNIK (username, user_id) VALUES (?, ?)";
+                } else if ("Pacijent".equals(role)) {
+                    sqlRoleTable = "INSERT INTO PACIJENT (username, user_id) VALUES (?, ?)";
+                } else {
+                    // Unknown role (should never happen)
+                    return false;
+                }
+
+                PreparedStatement pstmtRole = conn.prepareStatement(sqlRoleTable);
+                pstmtRole.setString(1, username);
+                pstmtRole.setInt(2, userId); // assuming user_id foreign key
+                pstmtRole.executeUpdate();
+
+                return true;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+}

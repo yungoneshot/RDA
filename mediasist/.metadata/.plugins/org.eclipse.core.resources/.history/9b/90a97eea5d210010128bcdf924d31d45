@@ -1,0 +1,135 @@
+package mediasist;
+
+import javax.swing.*;
+import java.awt.*;
+import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class notes extends JFrame {
+    private JTextArea notesArea;
+    private JComboBox<String> typeComboBox;
+    private String currentUsername;
+    private int currentUserId;
+    private JLabel statusLabel;
+
+    // Database configuration
+    private final String DB_URL = "jdbc:mysql://ucka.veleri.hr:3306/dsepic?useSSL=false&serverTimezone=UTC";
+    private final String DB_USER = "dsepic";
+    private final String DB_PW = "11";
+
+    public notes(String username, int userId) {
+        super("Patient Notes - " + username);
+        this.currentUsername = username;
+        this.currentUserId = userId;
+        
+        setSize(600, 500);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setLocationRelativeTo(null);
+        getContentPane().setLayout(null);
+
+        // Note Type components
+        JLabel lblType = new JLabel("Note Type:");
+        lblType.setBounds(20, 20, 80, 25);
+        add(lblType);
+
+        typeComboBox = new JComboBox<>(new String[]{"Lijek", "Mjerenje", "Kontrola", "Ostalo"});
+        typeComboBox.setBounds(100, 20, 150, 25);
+        add(typeComboBox);
+
+        // Notes Text Area with Scroll
+        notesArea = new JTextArea();
+        JScrollPane scrollPane = new JScrollPane(notesArea);
+        scrollPane.setBounds(20, 60, 550, 350);
+        add(scrollPane);
+
+        // Buttons
+        JButton btnSave = new JButton("Save Note");
+        btnSave.setBounds(150, 420, 120, 30);
+        btnSave.addActionListener(e -> saveNote());
+        add(btnSave);
+
+        JButton btnBack = new JButton("Back");
+        btnBack.setBounds(300, 420, 120, 30);
+        btnBack.addActionListener(e -> {
+            dispose();
+            new AppPage(currentUsername).setVisible(true);
+        });
+        add(btnBack);
+
+        // Status Label
+        statusLabel = new JLabel();
+        statusLabel.setBounds(20, 460, 550, 25);
+        add(statusLabel);
+
+        loadNotes(); // Load existing notes
+    }
+
+    private void loadNotes() {
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PW)) {
+            String sql = "SELECT Vrijeme_podsjetnika, Tekst_podsjetnika, Vrsta_podsjetnika " +
+                       "FROM PODSJETNIK WHERE id_user = ? ORDER BY Vrijeme_podsjetnika DESC";
+            
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, currentUserId);
+            
+            ResultSet rs = ps.executeQuery();
+            StringBuilder notesText = new StringBuilder();
+            
+            while (rs.next()) {
+                notesText.append(String.format("[%s] %s: %s\n\n",
+                    formatTimestamp(rs.getTimestamp("Vrijeme_podsjetnika")),
+                    rs.getString("Vrsta_podsjetnika"),
+                    rs.getString("Tekst_podsjetnika")));
+            }
+            
+            notesArea.setText(notesText.toString());
+            statusLabel.setText("Loaded " + countNotes(notesText.toString()) + " notes");
+        } catch (Exception ex) {
+            showError("Error loading notes: " + ex.getMessage());
+        }
+    }
+
+    private void saveNote() {
+        String noteText = notesArea.getText().trim();
+        String noteType = (String) typeComboBox.getSelectedItem();
+        
+        if (noteText.isEmpty()) {
+            statusLabel.setText("Please enter note text");
+            return;
+        }
+
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PW)) {
+            String sql = "INSERT INTO PODSJETNIK (Vrijeme_podsjetnika, Tekst_podsjetnika, Vrsta_podsjetnika, id_user) " +
+                       "VALUES (?, ?, ?, ?)";
+            
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setTimestamp(1, new Timestamp(new Date().getTime()));
+            ps.setString(2, noteText);
+            ps.setString(3, noteType);
+            ps.setInt(4, currentUserId);
+            
+            int rows = ps.executeUpdate();
+            if (rows > 0) {
+                statusLabel.setText("Note saved successfully!");
+                loadNotes(); // Refresh the notes view
+            }
+        } catch (Exception ex) {
+            showError("Error saving note: " + ex.getMessage());
+        }
+    }
+
+    // Helper methods
+    private String formatTimestamp(Timestamp timestamp) {
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm").format(timestamp);
+    }
+
+    private int countNotes(String notesText) {
+        return notesText.split("\n\n").length;
+    }
+
+    private void showError(String message) {
+        statusLabel.setText(message);
+        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+}

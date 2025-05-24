@@ -1,0 +1,95 @@
+package mediasist;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+
+public class UnosPacijent extends JFrame {
+    private JTextField imeField;
+    private JTextField prezimeField;
+    private JLabel statusLabel;
+
+    private String username;
+    private int idZdravstveniRadnik;
+
+    public UnosPacijent(String username, int idZdravstveniRadnik) {
+        super("Unos Pacijenta");
+        this.username = username;
+        this.idZdravstveniRadnik = idZdravstveniRadnik;
+
+        setSize(400, 300);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        getContentPane().setLayout(null);
+
+        JLabel lblIme = new JLabel("Ime:");
+        lblIme.setBounds(50, 50, 80, 25);
+        add(lblIme);
+
+        imeField = new JTextField();
+        imeField.setBounds(150, 50, 180, 25);
+        add(imeField);
+
+        JLabel lblPrezime = new JLabel("Prezime:");
+        lblPrezime.setBounds(50, 90, 80, 25);
+        add(lblPrezime);
+
+        prezimeField = new JTextField();
+        prezimeField.setBounds(150, 90, 180, 25);
+        add(prezimeField);
+
+        JButton btnSave = new JButton("Save");
+        btnSave.setBounds(150, 140, 100, 30);
+        add(btnSave);
+
+        statusLabel = new JLabel();
+        statusLabel.setBounds(50, 190, 300, 25);
+        add(statusLabel);
+
+        btnSave.addActionListener(e -> saveData());
+    }
+
+    private void saveData() {
+        String ime = imeField.getText().trim();
+        String prezime = prezimeField.getText().trim();
+
+        if (ime.isEmpty() || prezime.isEmpty()) {
+            statusLabel.setText("Unesite ime i prezime.");
+            return;
+        }
+
+        final String DB_URL  = "jdbc:mysql://ucka.veleri.hr:3306/dsepic?useSSL=false&serverTimezone=UTC";
+        final String DB_USER = "dsepic";
+        final String DB_PW   = "11";
+
+        String sql = "INSERT INTO PACIJENT (Ime, Prezime, ID_Zdravstveni_radnik) VALUES (?, ?, ?)";
+
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PW);
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            ps.setString(1, ime);
+            ps.setString(2, prezime);
+            ps.setInt(3, idZdravstveniRadnik);  // Or use ps.setNull(3, java.sql.Types.INTEGER) if unassigned
+
+            int rows = ps.executeUpdate();
+
+            if (rows > 0) {
+                statusLabel.setText("Pacijent uspješno spremljen.");
+                dispose();
+                SwingUtilities.invokeLater(() -> new AppPage(username, idZdravstveniRadnik).setVisible(true));
+            } else {
+                statusLabel.setText("Greška prilikom spremanja.");
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            statusLabel.setText("Greška u bazi podataka.");
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new UnosPacijent("testuser", 1).setVisible(true));
+    }
+}

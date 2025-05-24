@@ -1,0 +1,110 @@
+package mediasist;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+
+public class login extends JFrame {
+
+    private JTextField usernameField;
+    private JPasswordField passwordField;
+    private JLabel statusLabel;
+
+    public login() {
+        setTitle("User Login");
+        setSize(400, 300);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        getContentPane().setLayout(null);
+
+        JLabel lblUsername = new JLabel("Username:");
+        lblUsername.setBounds(50, 60, 80, 25);
+        getContentPane().add(lblUsername);
+
+        usernameField = new JTextField();
+        usernameField.setBounds(150, 60, 180, 25);
+        getContentPane().add(usernameField);
+
+        JLabel lblPassword = new JLabel("Password:");
+        lblPassword.setBounds(50, 100, 80, 25);
+        getContentPane().add(lblPassword);
+
+        passwordField = new JPasswordField();
+        passwordField.setBounds(150, 100, 180, 25);
+        getContentPane().add(passwordField);
+
+        JButton btnLogin = new JButton("Login");
+        btnLogin.setBounds(150, 150, 100, 30);
+        getContentPane().add(btnLogin);
+
+        JButton btnBack = new JButton("Back");
+        btnBack.setBounds(50, 150, 80, 30);
+        getContentPane().add(btnBack);
+
+        statusLabel = new JLabel("");
+        statusLabel.setBounds(50, 200, 300, 25);
+        getContentPane().add(statusLabel);
+
+        JLabel lblLogin = new JLabel("Login");
+        lblLogin.setFont(new Font("Tahoma", Font.PLAIN, 16));
+        lblLogin.setBounds(28, 24, 120, 25);
+        getContentPane().add(lblLogin);
+        
+        btnLogin.addActionListener(e -> {
+            String username = usernameField.getText().trim();
+            String password = new String(passwordField.getPassword());
+
+            if (username.isEmpty() || password.isEmpty()) {
+                statusLabel.setText("Please enter both username and password.");
+                return;
+            }
+
+            if (authenticateUser(username, password)) {
+                dispose(); // close login screen
+
+                // Open AppPage
+                SwingUtilities.invokeLater(() -> {
+                    AppPage appPage = new AppPage(currentUser);
+                    appPage.setVisible(true);
+                });
+            } else {
+                statusLabel.setText("Invalid credentials.");
+            }
+        });
+
+        btnBack.addActionListener(e -> {
+            dispose(); // close login
+            MainScreen.main(null); // back to main
+        });
+    }
+
+    private boolean authenticateUser(String username, String password) {
+        final String DB_URL = "jdbc:mysql://ucka.veleri.hr:3306/dsepic?useSSL=false&serverTimezone=UTC";
+        final String DB_USER = "dsepic";
+        final String DB_PASSWORD = "11";
+
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                pstmt.setString(1, username);
+                pstmt.setString(2, password);
+                ResultSet rs = pstmt.executeQuery();
+                return rs.next(); // login successful if any row is returned
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            statusLabel.setText("Database error.");
+            return false;
+        }
+    }
+
+    // Optional: use this to test this class standalone
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new login().setVisible(true));
+    }
+}

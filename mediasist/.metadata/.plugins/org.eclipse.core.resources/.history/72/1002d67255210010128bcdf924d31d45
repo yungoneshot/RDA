@@ -1,0 +1,31 @@
+package mediasist;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+
+public class Notes extends JFrame {
+    private JTextArea notesArea;
+
+    public Notes() {  // Removed parameters
+        setTitle("Notes");
+        setSize(450, 300);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setLocationRelativeTo(null);
+        getContentPane().setLayout(null);
+
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.setBounds(10, 11, 414, 200);
+        getContentPane().add(scrollPane);
+
+        notesArea = new JTextArea();
+        scrollPane.setViewportView(notesArea);
+
+        JButton btnDone = new JButton("Done");
+        btnDone.setBounds(170, 220, 100, 30);
+        getContentPane().add(btnDone);
+        btnDone.addActionListener(e -> {
+            dispose();
+            new AppPage().setVisible(true);
+        });
+    }
+}

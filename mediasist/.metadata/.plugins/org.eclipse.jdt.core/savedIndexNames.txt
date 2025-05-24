@@ -1,0 +1,8 @@
+INDEX VERSION 1.134+C:\Users\dorij\OneDrive\Desktop\mediasist\.metadata\.plugins\org.eclipse.jdt.core
+3271193799.index
+409948668.index
+3961769672.index
+2645826992.index
+2893261056.index
+1865797976.index
+2181450827.index

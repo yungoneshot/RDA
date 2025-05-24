@@ -1,0 +1,79 @@
+package mediasist;
+
+import javax.swing.*;
+import java.awt.EventQueue;
+
+
+public class AppPage extends JFrame {
+
+    private String currentUsername;
+
+    public AppPage(String username) {
+        this.currentUsername = username;
+
+        setTitle("Application Page");
+        setBounds(100, 100, 500, 400);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        getContentPane().setLayout(null);
+
+        JLabel lblWelcome = new JLabel("Welcome, " + username + "!");
+        lblWelcome.setBounds(150, 50, 200, 30);
+        getContentPane().add(lblWelcome);
+
+        JButton btnContact = new JButton("Kontaktirajte nas!");
+        btnContact.setBounds(321, 308, 153, 42);
+        btnContact.addActionListener(e -> {
+            try {
+                dispose(); // Close this window
+                new ContactUs().setVisible(true); // Open ContactUs screen
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error opening Contact page.");
+            }
+        });
+        getContentPane().add(btnContact);
+
+        JButton btnNotes = new JButton("Notes");
+        btnNotes.setBounds(10, 308, 153, 42);
+        btnNotes.addActionListener(e -> {
+            try {
+                dispose(); // Close this window
+                new notes().setVisible(true); // Open Notes screen
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error opening Notes page.");
+            }
+        });
+        getContentPane().add(btnNotes);
+
+        JButton btnUnos = new JButton("Unos Pacijenta");
+        btnUnos.setBounds(170, 308, 140, 42);
+        btnUnos.addActionListener(e -> {
+            try {
+                dispose(); // Optional: close AppPage
+                // Option 1: if UnosPacijent has a static main method
+                // UnosPacijent.main(new String[] { currentUsername });
+
+                // Option 2: if UnosPacijent is a JFrame with constructor
+                new UnosPacijent(currentUsername).setVisible(true);
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error opening UnosPacijent page.");
+            }
+        });
+        getContentPane().add(btnUnos);
+    }
+
+    // For testing only - NOT used in production login flow
+    public static void main(String[] args) {
+        EventQueue.invokeLater(() -> {
+            try {
+                AppPage frame = new AppPage(""); // Replace with actual username if needed
+                frame.setVisible(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+}

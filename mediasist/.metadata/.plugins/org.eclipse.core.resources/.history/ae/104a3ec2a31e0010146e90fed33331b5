@@ -1,0 +1,86 @@
+package mediasist;
+
+import javax.swing.*;
+import java.awt.*;
+
+public class SimpleGlucoseGraph extends JPanel {
+    private final String[] dates = {"4/10", "4/11", "4/12", "4/13", "4/14"};
+    private final double[] glucoseLevels = {5.6, 6.2, 5.9, 6.5, 6.0};
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2 = (Graphics2D) g;
+
+        int width = getWidth();
+        int height = getHeight();
+        int padding = 50;
+        int labelPad = 40;
+        int graphW = width - 2 * padding - labelPad;
+        int graphH = height - 2 * padding;
+
+        double max = getMax(glucoseLevels), min = getMin(glucoseLevels);
+        double yScale = graphH / (max - min);
+        double xScale = graphW / (double) (glucoseLevels.length - 1);
+
+        // Axes
+        g2.drawLine(padding + labelPad, height - padding, padding + labelPad, padding);
+        g2.drawLine(padding + labelPad, height - padding, width - padding, height - padding);
+
+        // Lines
+        g2.setColor(Color.BLUE);
+        for (int i = 0; i < glucoseLevels.length - 1; i++) {
+            int x1 = (int) (i * xScale + padding + labelPad);
+            int y1 = (int) ((max - glucoseLevels[i]) * yScale + padding);
+            int x2 = (int) ((i + 1) * xScale + padding + labelPad);
+            int y2 = (int) ((max - glucoseLevels[i + 1]) * yScale + padding);
+            g2.drawLine(x1, y1, x2, y2);
+        }
+
+        // Points
+        g2.setColor(Color.RED);
+        for (int i = 0; i < glucoseLevels.length; i++) {
+            int x = (int) (i * xScale + padding + labelPad);
+            int y = (int) ((max - glucoseLevels[i]) * yScale + padding);
+            g2.fillOval(x - 3, y - 3, 6, 6);
+        }
+
+        // Labels
+        g2.setColor(Color.BLACK);
+        for (int i = 0; i < dates.length; i++) {
+            int x = (int) (i * xScale + padding + labelPad);
+            g2.drawString(dates[i], x - 10, height - padding + 20);
+        }
+
+        for (int i = 0; i <= 5; i++) {
+            double yVal = min + (max - min) * i / 5;
+            int y = (int) ((max - yVal) * yScale + padding);
+            g2.drawString(String.format("%.1f", yVal), padding, y + 5);
+        }
+
+        // Title
+        g2.setFont(new Font("SansSerif", Font.BOLD, 16));
+        g2.drawString("Glucose Levels Over Time", padding + labelPad, padding - 10);
+    }
+
+    private double getMax(double[] data) {
+        double max = data[0];
+        for (double v : data) if (v > max) max = v;
+        return max;
+    }
+
+    private double getMin(double[] data) {
+        double min = data[0];
+        for (double v : data) if (v < min) min = v;
+        return min;
+    }
+
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Simple Glucose Graph");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.add(new SimpleGlucoseGraph());
+        frame.setSize(800, 600);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    }
+}

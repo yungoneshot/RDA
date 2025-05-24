@@ -1,0 +1,50 @@
+package mediasist;
+
+import javax.swing.*;
+import java.awt.*;
+
+public class AppPage extends JFrame {
+
+    private final String currentUsername;
+    private final int idZdravstveniRadnik;
+
+    public AppPage(String username, int idZdravstveniRadnik) {
+        super("MediAsist Dashboard");
+        this.currentUsername      = username;
+        this.idZdravstveniRadnik = idZdravstveniRadnik;
+
+        setSize(500, 400);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        getContentPane().setLayout(null);
+
+        JLabel lblWelcome = new JLabel("Welcome, " + username + "!");
+        lblWelcome.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        lblWelcome.setBounds(171, 78, 147, 30);
+        getContentPane().add(lblWelcome);
+
+        JButton btnUnos = new JButton("Unos Pacijenta");
+        btnUnos.setBounds(170, 150, 140, 40);
+        getContentPane().add(btnUnos);
+        btnUnos.addActionListener(e -> {
+            // launch the patient‐entry form with the doctor ID
+            new UnosPacijent().setVisible(true);
+            dispose();
+        });
+
+        JButton btnLogout = new JButton("Logout");
+        btnLogout.setBounds(10, 10, 100, 30);
+        getContentPane().add(btnLogout);
+        btnLogout.addActionListener(e -> {
+            dispose();
+            new MainScreen().setVisible(true);
+        });
+    }
+
+    // only for quick testing:
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            new AppPage("testuser", 42).setVisible(true);
+        });
+    }
+}

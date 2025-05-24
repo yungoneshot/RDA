@@ -1,0 +1,85 @@
+package mediasist;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+
+public class AppPage extends JFrame {
+    private String currentUsername;
+    private int currentUserId;
+
+    public AppPage(String username, int userId) {
+        super("MediAsist");
+        this.currentUsername = username;
+        this.currentUserId = userId;
+        
+        setSize(800, 600);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        getContentPane().setLayout(null);
+
+        JLabel lblWelcome = new JLabel("Dobrodošao, " + currentUsername + "!");
+        lblWelcome.setBounds(20, 51, 200, 30);
+        lblWelcome.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        getContentPane().add(lblWelcome);
+
+        JButton btnUnos = new JButton("Dodaj pacijenta");
+        btnUnos.setBounds(276, 232, 200, 40);
+        getContentPane().add(btnUnos);
+        btnUnos.addActionListener(e -> {
+            new UnosPacijent(currentUserId).setVisible(true);
+            dispose();
+        });
+
+        JButton btnNotes = new JButton("Bilješke");
+        btnNotes.setBounds(276, 282, 200, 40);
+        getContentPane().add(btnNotes);
+        btnNotes.addActionListener(e -> {
+            new notes(username, currentUserId).setVisible(true);
+            dispose();
+        });
+
+        JButton btnContact = new JButton("Kontakt");
+        btnContact.setBounds(276, 333, 200, 40);
+        getContentPane().add(btnContact);
+        btnContact.addActionListener(e -> {
+            new ContactUs(currentUsername, currentUserId).setVisible(true);
+            dispose();
+        });
+
+        JButton btnLogout = new JButton("Logout");
+        btnLogout.setBounds(10, 10, 100, 30);
+        getContentPane().add(btnLogout);
+        btnLogout.addActionListener(e -> {
+            dispose();
+            new MainScreen().setVisible(true);
+        });
+        
+        JButton btnGlucose = new JButton("Mjerenje glukoze");
+        btnGlucose.setBounds(276, 430, 200, 40);
+        btnGlucose.addActionListener(e -> {
+            new Mjerenja(currentUserId).setVisible(true);
+            dispose();
+        });
+        getContentPane().add(btnGlucose);
+        
+        JButton btnpregledPacijenata = new JButton("Pregled svih pacijenata");
+        btnpregledPacijenata.setBounds(276, 384, 200, 40);
+        btnpregledPacijenata.addActionListener(e -> {
+        	pregledPacijenata overviewWindow = new pregledPacijenata(username, currentUserId);
+        	overviewWindow.setVisible(true);
+            dispose();
+        });
+        getContentPane().add(btnpregledPacijenata);
+        
+        JButton btnReceptiUpute = new JButton("Unos recepta");
+        btnReceptiUpute.addActionListener(e -> {
+        	new ReceptiUpute(username, currentUserId).setVisible(true);
+        	dispose();
+
+        });
+        btnReceptiUpute.setBounds(276, 481, 200, 40);
+        getContentPane().add(btnReceptiUpute);
+}	
+}

@@ -1,0 +1,156 @@
+package mediasist;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.sql.*;
+import java.time.LocalDate;
+
+public class ReceptiUpute extends JFrame {
+
+    private int idZdravstveniRadnik;
+    private String username;
+
+    private JComboBox<String> cbPacijenti;
+    private JTextField txtImeLijeka;
+    private JTextField txtDozaLijeka;
+    private JTextArea txtUpute;
+    private JTable tblRecepti;
+    private DefaultTableModel model;
+
+    public ReceptiUpute(String username, int userId) {
+        this.username = username;
+        this.idZdravstveniRadnik = userId;
+
+        setTitle("Unos recepta i uputa");
+        setSize(700, 500);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
+
+        // Top panel - form
+        JPanel panelForm = new JPanel(new GridLayout(5, 2, 10, 10));
+        panelForm.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        cbPacijenti = new JComboBox<>();
+        txtImeLijeka = new JTextField();
+        txtDozaLijeka = new JTextField();
+        txtUpute = new JTextArea(3, 20);
+        JButton btnSpremi = new JButton("Spremi recept");
+
+        panelForm.add(new JLabel("Pacijent:"));
+        panelForm.add(cbPacijenti);
+        panelForm.add(new JLabel("Ime lijeka:"));
+        panelForm.add(txtImeLijeka);
+        panelForm.add(new JLabel("Doza lijeka:"));
+        panelForm.add(txtDozaLijeka);
+        panelForm.add(new JLabel("Upute:"));
+        panelForm.add(new JScrollPane(txtUpute));
+        panelForm.add(new JLabel());
+        panelForm.add(btnSpremi);
+
+        // Bottom panel - table
+        model = new DefaultTableModel(new Object[]{"Pacijent", "Datum", "Ime lijeka", "Doza", "Upute"}, 0);
+        tblRecepti = new JTable(model);
+        JScrollPane scrollPane = new JScrollPane(tblRecepti);
+
+        add(panelForm, BorderLayout.NORTH);
+        add(scrollPane, BorderLayout.CENTER);
+
+        // Action
+        btnSpremi.addActionListener(this::handleSpremi);
+
+        // Load data
+        ucitajPacijente();
+        ucitajRecepte();
+    }
+
+    private void handleSpremi(ActionEvent e) {
+        spremiRecept();
+    }
+
+    // Učitavanje pacijenata u combo box
+    private void ucitajPacijente() {
+        try (Connection conn = DB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT id_user, Ime_pacijent, Prezime_pacijent FROM PACIJENT")) {
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                int id = rs.getInt("id_user");
+                String ime = rs.getString("ime");
+                String prezime = rs.getString("prezime");
+                cbPacijenti.addItem(id + " - " + ime + " " + prezime);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Spremanje novog recepta
+    private void spremiRecept() {
+        String pacijentStr = (String) cbPacijenti.getSelectedItem();
+        if (pacijentStr == null || pacijentStr.isEmpty()) return;
+
+        int idPacijent = Integer.parseInt(pacijentStr.split(" - ")[0]);
+        String imeLijeka = txtImeLijeka.getText().trim();
+        String dozaLijeka = txtDozaLijeka.getText().trim();
+        String upute = txtUpute.getText().trim();
+        Date datum = Date.valueOf(LocalDate.now());
+
+        String sql = "INSERT INTO RECEPT (Datum_recept, Upute_recept, Ime_lijeka, Doza_lijeka, id_user, ID_Zdravstveni_radnik) VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = DB.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setDate(1, datum);
+            ps.setString(2, upute);
+            ps.setString(3, imeLijeka);
+            ps.setString(4, dozaLijeka);
+            ps.setInt(5, idPacijent);
+            ps.setInt(6, idZdravstveniRadnik);
+
+            ps.executeUpdate();
+            JOptionPane.showMessageDialog(this, "Recept uspješno spremljen.");
+            ucitajRecepte();
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Greška pri spremanju recepta.");
+        }
+    }
+
+    // Prikaz svih recepata
+    private void ucitajRecepte() {
+        model.setRowCount(0);
+        String sql = """
+			SELECT r.Datum_recept, r.Ime_lijeka, r.Doza_lijeka, r.Upute_recept, 
+			       p.ime, p.prezime
+			FROM RECEPT r
+			JOIN PACIJENT p ON r.id_user = p.id_user
+			WHERE r.ID_Zdravstveni_radnik = ?
+			ORDER BY r.Datum_recept DESC
+		""";
+
+        try (Connection conn = DB.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, idZdravstveniRadnik);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                String pacijent = rs.getString("ime") + " " + rs.getString("prezime");
+                String datum = rs.getDate("Datum_recept").toString();
+                String imeLijeka = rs.getString("Ime_lijeka");
+                String doza = rs.getString("Doza_lijeka");
+                String upute = rs.getString("Upute_recept");
+
+                model.addRow(new Object[]{pacijent, datum, imeLijeka, doza, upute});
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+}

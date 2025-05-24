@@ -1,0 +1,239 @@
+package mediasist;
+
+import javax.swing.*;
+import java.awt.event.*;
+import java.sql.*;
+import java.awt.Font;
+
+public class register extends JFrame {
+
+    private JTextField usernameField;
+    private JPasswordField passwordField;
+    private JRadioButton rbZdravstveniRadnik;
+    private JRadioButton rbPacijent;
+    private ButtonGroup roleGroup;
+    private JLabel statusLabel;
+
+    // Additional fields for zdravstveni radnik
+    private JLabel lblImeZdravstveni;
+    private JTextField imeZdravstveniField;
+    private JLabel lblPrezimeZdravstveni;
+    private JTextField prezimeZdravstveniField;
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            register window = new register();
+            window.setVisible(true);
+        });
+    }
+
+    public register() {
+        setTitle("Registracija");
+        setSize(400, 400);
+        setBounds(100, 100, 400, 400);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        getContentPane().setLayout(null);
+
+        JLabel lblRegister = new JLabel("Registracija");
+        lblRegister.setFont(new Font("Tahoma", Font.PLAIN, 16));
+        lblRegister.setBounds(28, 24, 120, 25);
+        getContentPane().add(lblRegister);
+
+        JLabel lblUsername = new JLabel("Username:");
+        lblUsername.setBounds(50, 60, 80, 25);
+        getContentPane().add(lblUsername);
+
+        usernameField = new JTextField();
+        usernameField.setBounds(150, 60, 180, 25);
+        getContentPane().add(usernameField);
+
+        JLabel lblPassword = new JLabel("Password:");
+        lblPassword.setBounds(50, 103, 80, 25);
+        getContentPane().add(lblPassword);
+
+        passwordField = new JPasswordField();
+        passwordField.setBounds(150, 103, 180, 25);
+        getContentPane().add(passwordField);
+
+        // Role selection radio buttons
+        rbZdravstveniRadnik = new JRadioButton("Zdravstveni radnik");
+        rbZdravstveniRadnik.setBounds(150, 140, 160, 25);
+        getContentPane().add(rbZdravstveniRadnik);
+
+        rbPacijent = new JRadioButton("Pacijent");
+        rbPacijent.setBounds(150, 170, 160, 25);
+        getContentPane().add(rbPacijent);
+
+        roleGroup = new ButtonGroup();
+        roleGroup.add(rbZdravstveniRadnik);
+        roleGroup.add(rbPacijent);
+
+        // Additional fields for zdravstveni radnik name and surname
+        lblImeZdravstveni = new JLabel("Ime:");
+        lblImeZdravstveni.setBounds(50, 205, 80, 25);
+        lblImeZdravstveni.setVisible(false);
+        getContentPane().add(lblImeZdravstveni);
+
+        imeZdravstveniField = new JTextField();
+        imeZdravstveniField.setBounds(150, 205, 180, 25);
+        imeZdravstveniField.setVisible(false);
+        getContentPane().add(imeZdravstveniField);
+
+        lblPrezimeZdravstveni = new JLabel("Prezime:");
+        lblPrezimeZdravstveni.setBounds(50, 240, 80, 25);
+        lblPrezimeZdravstveni.setVisible(false);
+        getContentPane().add(lblPrezimeZdravstveni);
+
+        prezimeZdravstveniField = new JTextField();
+        prezimeZdravstveniField.setBounds(150, 240, 180, 25);
+        prezimeZdravstveniField.setVisible(false);
+        getContentPane().add(prezimeZdravstveniField);
+
+        JButton btnRegister = new JButton("Registriraj se");
+        btnRegister.setBounds(150, 280, 120, 30);
+        getContentPane().add(btnRegister);
+
+        JButton btnBack = new JButton("Back");
+        btnBack.setBounds(50, 280, 80, 30);
+        getContentPane().add(btnBack);
+
+        statusLabel = new JLabel("");
+        statusLabel.setBounds(50, 320, 300, 25);
+        getContentPane().add(statusLabel);
+
+        // Show/hide name fields for zdravstveni radnik based on selection
+        rbZdravstveniRadnik.addActionListener(e -> toggleZdravstveniRadnikFields(true));
+        rbPacijent.addActionListener(e -> toggleZdravstveniRadnikFields(false));
+
+        btnBack.addActionListener(e -> {
+            dispose(); // Close register window
+            MainScreen.main(null); // Open main screen
+        });
+
+        btnRegister.addActionListener(e -> {
+            String username = usernameField.getText().trim();
+            String password = new String(passwordField.getPassword());
+
+            if (username.isEmpty() || password.isEmpty()) {
+                statusLabel.setText("Popunite sva polja.");
+                return;
+            }
+
+            if (!rbZdravstveniRadnik.isSelected() && !rbPacijent.isSelected()) {
+                statusLabel.setText("Odaberite ulogu (Zdravstveni radnik ili Pacijent).");
+                return;
+            }
+
+            // Validate zdravstveni radnik fields if selected
+            if (rbZdravstveniRadnik.isSelected()) {
+                String imeZr = imeZdravstveniField.getText().trim();
+                String prezimeZr = prezimeZdravstveniField.getText().trim();
+                if (imeZr.isEmpty() || prezimeZr.isEmpty()) {
+                    statusLabel.setText("Unesite ime i prezime zdravstvenog radnika.");
+                    return;
+                }
+            }
+
+            int userId = saveUser(username, password);
+            if (userId > 0) {
+                if (rbZdravstveniRadnik.isSelected()) {
+                    String imeZr = imeZdravstveniField.getText().trim();
+                    String prezimeZr = prezimeZdravstveniField.getText().trim();
+
+                    boolean success = saveZdravstveniRadnik(userId, imeZr, prezimeZr);
+                    if (success) {
+                        statusLabel.setText("Uspješna registracija zdravstvenog radnika.");
+                        clearFields();
+                    } else {
+                        statusLabel.setText("Greška pri unosu zdravstvenog radnika.");
+                    }
+                } else if (rbPacijent.isSelected()) {
+                    dispose();
+                    UnosPacijent unosPacijentWindow = new UnosPacijent(userId);
+                    unosPacijentWindow.setVisible(true);
+                }
+            } else {
+                statusLabel.setText("Korisničko ime već postoji ili greška.");
+            }
+        });
+    }
+
+    private void toggleZdravstveniRadnikFields(boolean visible) {
+        lblImeZdravstveni.setVisible(visible);
+        imeZdravstveniField.setVisible(visible);
+        lblPrezimeZdravstveni.setVisible(visible);
+        prezimeZdravstveniField.setVisible(visible);
+        if (!visible) {
+            imeZdravstveniField.setText("");
+            prezimeZdravstveniField.setText("");
+        }
+    }
+
+    private void clearFields() {
+        usernameField.setText("");
+        passwordField.setText("");
+        roleGroup.clearSelection();
+        toggleZdravstveniRadnikFields(false);
+    }
+
+    private int saveUser(String username, String password) {
+        final String DB_URL = "jdbc:mysql://ucka.veleri.hr:3306/dsepic?useSSL=false&serverTimezone=UTC";
+        final String DB_USER = "dsepic";
+        final String DB_PASSWORD = "11";
+
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                String checkSql = "SELECT id_user FROM users WHERE username = ?";
+                PreparedStatement checkStmt = conn.prepareStatement(checkSql);
+                checkStmt.setString(1, username);
+                ResultSet rs = checkStmt.executeQuery();
+                if (rs.next()) {
+                    // Username already exists
+                    return -1;
+                }
+
+                String sql = "INSERT INTO users (username, password) VALUES (?, ?)";
+                PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                pstmt.setString(1, username);
+                pstmt.setString(2, password);
+                int affectedRows = pstmt.executeUpdate();
+
+                if (affectedRows == 0) {
+                    return -1;
+                }
+
+                ResultSet generatedKeys = pstmt.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    return generatedKeys.getInt(1);
+                } else {
+                    return -1;
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    private boolean saveZdravstveniRadnik(int userId, String ime, String prezime) {
+        final String DB_URL = "jdbc:mysql://ucka.veleri.hr:3306/dsepic?useSSL=false&serverTimezone=UTC";
+        final String DB_USER = "dsepic";
+        final String DB_PASSWORD = "11";
+
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "INSERT INTO ZDRAVSTVENI_RADNIK (ID_Zdravstveni_radnik, Ime_zdravstveni_radnik, Prezime_zdravstveni_radnik) VALUES (?, ?, ?)";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, userId); // Assuming ID_Zdravstveni_radnik uses same id as users.id_user
+            ps.setString(2, ime);
+            ps.setString(3, prezime);
+            int rows = ps.executeUpdate();
+            return rows > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+}

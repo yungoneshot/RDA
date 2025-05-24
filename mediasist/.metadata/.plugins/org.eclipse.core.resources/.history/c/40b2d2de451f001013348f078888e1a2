@@ -1,0 +1,101 @@
+package mediasist;
+
+import java.awt.EventQueue;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.JTextPane;
+import javax.swing.JTextField;
+
+public class ContactUs extends JFrame {
+
+	private static final long serialVersionUID = 1L;
+	private JPanel contentPane;
+	private JTextField textField;
+	private JTextField txtMediasistgmailcom;
+	private JTextField txtAdress;
+	private JTextField txtVukovarskaUl;
+	private JTextField txtWorkingTime;
+	private JTextField txtMondayToFriday;
+
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					ContactUs frame = new ContactUs();
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the frame.
+	 */
+	public ContactUs() {
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 450, 300);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+
+		setContentPane(contentPane);
+		contentPane.setLayout(null);
+		
+		JTextPane txtpnContacts = new JTextPane();
+		txtpnContacts.setText("Contacts ");
+		txtpnContacts.setBounds(171, 11, 53, 20);
+		contentPane.add(txtpnContacts);
+		
+		textField = new JTextField();
+		textField.setText("+385 99 546 4674");
+		textField.setBounds(149, 42, 98, 20);
+		contentPane.add(textField);
+		textField.setColumns(10);
+		
+		txtMediasistgmailcom = new JTextField();
+		txtMediasistgmailcom.setText("mediasist@gmail.com");
+		txtMediasistgmailcom.setBounds(137, 73, 123, 20);
+		contentPane.add(txtMediasistgmailcom);
+		txtMediasistgmailcom.setColumns(10);
+		
+		txtAdress = new JTextField();
+		txtAdress.setText("Address");
+		txtAdress.setBounds(215, 143, 86, 20);
+		contentPane.add(txtAdress);
+		txtAdress.setColumns(10);
+		
+		txtVukovarskaUl = new JTextField();
+		txtVukovarskaUl.setText("Vukovarska ul. 58, 51000, Rijeka");
+		txtVukovarskaUl.setBounds(215, 174, 167, 20);
+		contentPane.add(txtVukovarskaUl);
+		txtVukovarskaUl.setColumns(10);
+		
+		txtWorkingTime = new JTextField();
+		txtWorkingTime.setText("Working time");
+		txtWorkingTime.setBounds(10, 143, 75, 20);
+		contentPane.add(txtWorkingTime);
+		txtWorkingTime.setColumns(10);
+		
+		txtMondayToFriday = new JTextField();
+		txtMondayToFriday.setText("Monday to Friday 8:00 to 15:00");
+		txtMondayToFriday.setBounds(10, 174, 178, 20);
+		contentPane.add(txtMondayToFriday);
+		txtMondayToFriday.setColumns(10);
+		
+        JButton btnBack = new JButton("Back");
+        btnBack.setBounds(167, 231, 80, 30);
+        getContentPane().add(btnBack);
+		
+        btnBack.addActionListener(e -> {
+            dispose(); // close login
+            AppPage.main(null); // back to main
+        });
+	}
+}

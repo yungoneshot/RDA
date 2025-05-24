@@ -1,0 +1,120 @@
+package mediasist;
+
+import java.awt.EventQueue;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+import javax.swing.JFrame;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+
+public class UnosPacijent extends JFrame {
+	
+	private JTextField imeField, prezimeField, dobField;
+	private JComboBox<String> spolCombo;
+	private String username;
+	
+	public UnosPacijent(String username) {
+		this.username=username;
+		
+        setTitle("Unos Podataka o Pacijentu");
+        setSize(400, 300);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setLocationRelativeTo(null);
+        getContentPane().setLayout(null);
+
+        JLabel label = new JLabel("Ime:");
+        label.setBounds(10, 11, 187, 35);
+        getContentPane().add(label);
+        imeField = new JTextField();
+        imeField.setBounds(197, 11, 187, 35);
+        getContentPane().add(imeField);
+
+        JLabel label_1 = new JLabel("Prezime:");
+        label_1.setBounds(10, 56, 187, 35);
+        getContentPane().add(label_1);
+        prezimeField = new JTextField();
+        prezimeField.setBounds(197, 56, 187, 35);
+        getContentPane().add(prezimeField);
+
+        JLabel label_2 = new JLabel("Datum rođenja (YYYY-MM-DD):");
+        label_2.setBounds(10, 101, 187, 35);
+        getContentPane().add(label_2);
+        dobField = new JTextField();
+        dobField.setBounds(197, 101, 187, 35);
+        getContentPane().add(dobField);
+
+        JLabel label_3 = new JLabel("Spol:");
+        label_3.setBounds(10, 147, 187, 35);
+        getContentPane().add(label_3);
+        spolCombo = new JComboBox<>(new String[]{"Muško", "Žensko", "Drugo"});
+        spolCombo.setBounds(197, 146, 187, 35);
+        getContentPane().add(spolCombo);	
+        
+        JButton saveButton = new JButton("Spremi");
+        saveButton.setBounds(0, 191, 187, 35);
+        JButton cancelButton = new JButton("Odustani");
+        cancelButton.setBounds(197, 191, 187, 35);
+
+        saveButton.addActionListener(e -> saveData());
+        cancelButton.addActionListener(e -> dispose());
+
+        getContentPane().add(saveButton);
+        getContentPane().add(cancelButton);
+
+        setVisible(true);
+	}
+
+
+    private void saveData() {
+        String ime = imeField.getText().trim();
+        String prezime = prezimeField.getText().trim();
+        String dobStr = dobField.getText().trim();
+        String spol = spolCombo.getSelectedItem().toString();
+
+        // Basic validation
+        if (ime.isEmpty() || prezime.isEmpty() || dobStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Sva polja moraju biti ispunjena.");
+            return;
+        }
+
+        LocalDate dob;
+        try {
+            dob = LocalDate.parse(dobStr);
+        } catch (DateTimeParseException ex) {
+            JOptionPane.showMessageDialog(this, "Datum nije ispravan (format: YYYY-MM-DD).");
+            return;
+        }
+
+        final String DB_URL = "jdbc:mysql://ucka.veleri.hr:3306/dsepic?useSSL=false&serverTimezone=UTC";
+        final String DB_USER = "dsepic";
+        final String DB_PASSWORD = "11";
+
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "INSERT INTO PACIJENT (username, Ime_pacijent, Prezime_pacijent, DOB_pacijent, Spol_pacijent) " +
+                         "VALUES (?, ?, ?, ?, ?)";
+
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setString(1, username);
+            stmt.setString(2, ime);
+            stmt.setString(3, prezime);
+            stmt.setDate(4, Date.valueOf(dob));
+            stmt.setString(5, spol);
+
+            stmt.executeUpdate();
+
+            JOptionPane.showMessageDialog(this, "Podaci uspješno spremljeni.");
+            dispose();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Greška prilikom spremanja u bazu.");
+        }
+    }
+}

@@ -1,0 +1,95 @@
+package mediasist;
+
+import java.awt.EventQueue;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.JTextPane;
+import javax.swing.JTextField;
+import javax.swing.JLabel;
+import java.awt.Font;
+
+public class ContactUs extends JFrame {
+
+	private static final long serialVersionUID = 1L;
+	private JPanel contentPane;
+	private JTextField txtAdress;
+	private JTextField txtVukovarskaUl;
+	private JTextField txtMondayToFriday;
+
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					ContactUs frame = new ContactUs();
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the frame.
+	 */
+	public ContactUs() {
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 450, 300);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+
+		setContentPane(contentPane);
+		contentPane.setLayout(null);
+		
+		txtAdress = new JTextField();
+		txtAdress.setText("Address");
+		txtAdress.setBounds(215, 143, 86, 20);
+		contentPane.add(txtAdress);
+		txtAdress.setColumns(10);
+		
+		txtVukovarskaUl = new JTextField();
+		txtVukovarskaUl.setText("Vukovarska ul. 58, 51000, Rijeka");
+		txtVukovarskaUl.setBounds(215, 174, 167, 20);
+		contentPane.add(txtVukovarskaUl);
+		txtVukovarskaUl.setColumns(10);
+		
+		txtMondayToFriday = new JTextField();
+		txtMondayToFriday.setText("Monday to Friday 8:00 to 15:00");
+		txtMondayToFriday.setBounds(10, 174, 178, 20);
+		contentPane.add(txtMondayToFriday);
+		txtMondayToFriday.setColumns(10);
+		
+        JButton btnBack = new JButton("Back");
+        btnBack.setBounds(167, 220, 80, 30);
+        getContentPane().add(btnBack);
+        
+        JLabel lblNewLabel = new JLabel("Radno vrijeme");
+        lblNewLabel.setFont(new Font("Tahoma", Font.PLAIN, 13));
+        lblNewLabel.setBounds(10, 145, 86, 20);
+        contentPane.add(lblNewLabel);
+        
+        JLabel lblNewLabel_1 = new JLabel("Kontakt");
+        lblNewLabel_1.setFont(new Font("Tahoma", Font.PLAIN, 16));
+        lblNewLabel_1.setBounds(10, 11, 86, 30);
+        contentPane.add(lblNewLabel_1);
+        
+        JLabel lblNewLabel_2 = new JLabel("+385 99 546 4674");
+        lblNewLabel_2.setBounds(20, 52, 123, 20);
+        contentPane.add(lblNewLabel_2);
+        
+        JLabel lblNewLabel_2_1 = new JLabel("mediassist@gmail.com");
+        lblNewLabel_2_1.setBounds(20, 85, 123, 20);
+        contentPane.add(lblNewLabel_2_1);
+		
+        btnBack.addActionListener(e -> {
+            dispose(); // close login
+            AppPage.main(null); // back to main
+        });
+	}
+}

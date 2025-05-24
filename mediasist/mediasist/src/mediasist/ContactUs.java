@@ -1,0 +1,68 @@
+package mediasist;
+
+import javax.swing.*;
+import java.awt.*;
+
+public class ContactUs extends JFrame {
+    private String currentUsername;
+    private int currentUserId;
+    
+    public ContactUs(String username, int userId) {
+        this.currentUsername = username;
+        this.currentUserId = userId;
+        
+        setTitle("Contact Us");
+        setSize(800, 600);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setLocationRelativeTo(null);
+        getContentPane().setLayout(null);
+
+        JLabel lblTitle = new JLabel("Kontakt");
+        lblTitle.setFont(new Font("Tahoma", Font.BOLD, 16));
+        lblTitle.setBounds(309, 184, 200, 25);
+        getContentPane().add(lblTitle);
+
+        JLabel lblPhone = new JLabel("Mob:");
+        lblPhone.setBounds(209, 224, 80, 25);
+        getContentPane().add(lblPhone);
+
+        JLabel lblPhoneValue = new JLabel("+385 99 546 4674");
+        lblPhoneValue.setBounds(309, 224, 200, 25);
+        getContentPane().add(lblPhoneValue);
+
+        JLabel lblEmail = new JLabel("Email:");
+        lblEmail.setBounds(209, 254, 80, 25);
+        getContentPane().add(lblEmail);
+
+        JLabel lblEmailValue = new JLabel("mediassist@gmail.com");
+        lblEmailValue.setBounds(309, 254, 200, 25);
+        getContentPane().add(lblEmailValue);
+
+        JLabel lblAddress = new JLabel("Adresa:");
+        lblAddress.setBounds(209, 294, 80, 25);
+        getContentPane().add(lblAddress);
+
+        JLabel lblAddressValue = new JLabel("Vukovarska ul. 58, 51000, Rijeka");
+        lblAddressValue.setBounds(309, 294, 250, 25);
+        getContentPane().add(lblAddressValue);
+
+        JLabel lblHours = new JLabel("Radno vrijeme:");
+        lblHours.setBounds(209, 324, 100, 25);
+        getContentPane().add(lblHours);
+
+        JLabel lblHoursValue = new JLabel("Pon - Pet 8:00 do 15:00");
+        lblHoursValue.setBounds(309, 324, 250, 25);
+        getContentPane().add(lblHoursValue);
+
+        JButton btnBack = new JButton("Back");
+        btnBack.setBounds(329, 374, 100, 30);
+        getContentPane().add(btnBack);
+        btnBack.addActionListener(e -> {
+            dispose();
+            new AppPage(currentUsername, currentUserId).setVisible(true);
+        });
+    }
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new ContactUs("TestKorisnik", 1));
+    }
+}

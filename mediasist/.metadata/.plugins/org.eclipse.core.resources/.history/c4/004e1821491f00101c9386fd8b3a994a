@@ -1,0 +1,64 @@
+package mediasist;
+
+import javax.swing.*;
+import java.awt.*;
+
+public class graph extends JPanel {
+    private final String[] dates = {"4/10", "4/11", "4/12", "4/13", "4/14"};
+    private final double[] glucoseLevels = {5.6, 6.2, 5.9, 6.5, 6.0};
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2 = (Graphics2D) g;
+
+        int width = getWidth();
+        int height = getHeight();
+        int padding = 50;
+        int labelPad = 40;
+        int barWidth = 50;
+
+        double max = getMax(glucoseLevels);
+        double scale = (height - 2 * padding) / max;
+
+        // Draw axes
+        g2.drawLine(padding + labelPad, padding, padding + labelPad, height - padding);
+        g2.drawLine(padding + labelPad, height - padding, width - padding, height - padding);
+
+        // Draw bars
+        for (int i = 0; i < glucoseLevels.length; i++) {
+            int barHeight = (int) (glucoseLevels[i] * scale);
+            int x = padding + labelPad + i * (barWidth + 20);
+            int y = height - padding - barHeight;
+
+            g2.setColor(new Color(100, 150, 255));
+            g2.fillRect(x, y, barWidth, barHeight);
+
+            // Draw values above bars
+            g2.setColor(Color.BLACK);
+            g2.drawString(String.format("%.1f", glucoseLevels[i]), x + 10, y - 5);
+
+            // Draw date labels
+            g2.drawString(dates[i], x + 5, height - padding + 20);
+        }
+
+        // Draw title
+        g2.setFont(new Font("SansSerif", Font.BOLD, 16));
+        g2.drawString("Glucose Levels (mmol/L)", padding + 20, padding - 10);
+    }
+
+    private double getMax(double[] data) {
+        double max = data[0];
+        for (double v : data) if (v > max) max = v;
+        return max;
+    }
+
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Glucose Bar Graph");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.add(new graph());
+        frame.setSize(600, 400);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    }
+}

@@ -1,0 +1,40 @@
+package mediasist;
+
+import javax.swing.*;
+import java.awt.*;
+
+public class MainScreen extends JFrame {
+    
+    public MainScreen() {
+        super("MediAsist");
+        setSize(800, 600);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        getContentPane().setLayout(null);
+
+        JButton btnLogin = new JButton("Login");
+        btnLogin.setBounds(128, 48, 120, 40);
+        getContentPane().add(btnLogin);
+        btnLogin.addActionListener(e -> {
+            new login().setVisible(true);
+            dispose();
+        });
+
+        JButton btnRegister = new JButton("Register");
+        btnRegister.setBounds(128, 108, 120, 40);
+        getContentPane().add(btnRegister);
+        btnRegister.addActionListener(e -> {
+            new register().setVisible(true);
+            dispose();
+        });
+
+        JButton btnExit = new JButton("Exit");
+        btnExit.setBounds(128, 168, 120, 40);
+        getContentPane().add(btnExit);
+        btnExit.addActionListener(e -> System.exit(0));
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new MainScreen().setVisible(true));
+    }
+}

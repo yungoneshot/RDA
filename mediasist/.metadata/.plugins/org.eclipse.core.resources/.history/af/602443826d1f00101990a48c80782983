@@ -1,0 +1,112 @@
+package mediasist;
+
+import javax.swing.*;
+import java.awt.event.*;
+import java.sql.*;
+import java.awt.Font;
+
+
+public class register extends JFrame {
+
+    private JTextField usernameField;
+    private JPasswordField passwordField;
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            register window = new register();
+            window.setVisible(true);
+        });
+    }
+
+    public register() {
+        setTitle("Registration");
+        setBounds(100, 100, 400, 300);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        getContentPane().setLayout(null);
+
+        JLabel lblUsername = new JLabel("Username:");
+        lblUsername.setBounds(50, 60, 80, 25);
+        getContentPane().add(lblUsername);
+
+        usernameField = new JTextField();
+        usernameField.setBounds(150, 60, 180, 25);
+        getContentPane().add(usernameField);
+
+        JLabel lblPassword = new JLabel("Password:");
+        lblPassword.setBounds(50, 103, 80, 25);
+        getContentPane().add(lblPassword);
+
+        passwordField = new JPasswordField();
+        passwordField.setBounds(150, 103, 180, 25);
+        getContentPane().add(passwordField);
+
+        JButton btnRegister = new JButton("Register");
+        btnRegister.setBounds(150, 160, 100, 30);
+        getContentPane().add(btnRegister);
+
+        JButton btnBack = new JButton("Back");
+        btnBack.setBounds(50, 160, 80, 30);
+        getContentPane().add(btnBack);
+
+        JLabel statusLabel = new JLabel("");
+        statusLabel.setBounds(50, 210, 300, 25);
+        getContentPane().add(statusLabel);
+
+        btnBack.addActionListener(e -> {
+            dispose(); // Close register window
+            MainScreen.main(null); // Open main screen
+        });
+
+        btnRegister.addActionListener(e -> {
+            String username = usernameField.getText().trim();
+            String password = new String(passwordField.getPassword());
+
+            if (username.isEmpty() || password.isEmpty()) {
+                statusLabel.setText("Please fill in all fields.");
+                return;
+            }
+
+            boolean success = saveToDatabase(username, password);
+            if (success) {
+                statusLabel.setText("User registered successfully.");
+                clearFields();
+            } else {
+                statusLabel.setText("Error registering user.");
+                
+                JLabel lblRegister = new JLabel("Registracija");
+                lblRegister.setFont(new Font("Tahoma", Font.PLAIN, 16));
+                lblRegister.setBounds(28, 24, 120, 25);
+                getContentPane().add(lblRegister);
+                
+            }
+        });
+    }
+
+    private void clearFields() {
+        usernameField.setText("");
+        passwordField.setText("");
+    }
+
+    private boolean saveToDatabase(String username, String password) {
+        final String DB_URL = "jdbc:mysql://ucka.veleri.hr:3306/dsepic?useSSL=false&serverTimezone=UTC";
+        final String DB_USER = "dsepic";
+        final String DB_PASSWORD = "11";
+
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                String sql = "INSERT INTO users (username, password) VALUES (?, ?)";
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                pstmt.setString(1, username);
+                pstmt.setString(2, password);
+                pstmt.executeUpdate();
+                return true;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+}

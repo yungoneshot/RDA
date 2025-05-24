@@ -1,0 +1,201 @@
+package mediasist;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+public class Mjerenje extends JFrame {
+    private Connection connection;
+    private JTextField glucoseField;
+    private JButton submitButton;
+    private GraphPanel graphPanel;
+    private List<Measurement> measurements = new ArrayList<>();
+    private int currentUserId;  // Store the user ID
+
+    // Modified constructor to receive user ID
+    public Mjerenje(int userId) {
+        this.currentUserId = userId;
+        
+        setTitle("Glucose Measurement");
+        setSize(800, 600);
+        setLayout(null);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        // Initialize database connection
+        connectToDatabase();
+
+        // UI Components
+        JLabel titleLabel = new JLabel("Enter Glucose Level:");
+        titleLabel.setBounds(50, 30, 200, 30);
+        add(titleLabel);
+
+        glucoseField = new JTextField();
+        glucoseField.setBounds(50, 70, 200, 30);
+        add(glucoseField);
+
+        submitButton = new JButton("Submit Measurement");
+        submitButton.setBounds(50, 120, 200, 30);
+        submitButton.addActionListener(new SubmitAction());
+        add(submitButton);
+
+        // Back button
+        JButton btnBack = new JButton("Back");
+        btnBack.setBounds(50, 170, 200, 30);
+        btnBack.addActionListener(e -> {
+            dispose();
+            new AppPage("", currentUserId).setVisible(true);
+        });
+        add(btnBack);
+
+        // Graph panel
+        graphPanel = new GraphPanel();
+        graphPanel.setBounds(300, 30, 450, 500);
+        add(graphPanel);
+
+        // Load existing measurements
+        loadMeasurements();
+
+        setVisible(true);
+    }
+
+    private void connectToDatabase() {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            String url = "jdbc:mysql://ucka.veleri.hr:3306/dsepic?useSSL=false&serverTimezone=UTC";
+            connection = DriverManager.getConnection(url, "dsepic", "11");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Database connection failed: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void loadMeasurements() {
+        measurements.clear();
+        try {
+            String query = "SELECT Vrijeme_mjerenja, Vrijednost_mjerenja FROM MJERENJA WHERE ID_user = ? ORDER BY Vrijeme_mjerenja";
+            PreparedStatement stmt = connection.prepareStatement(query);
+            stmt.setInt(1, currentUserId);
+            
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Date time = rs.getTimestamp("Vrijeme_mjerenja");
+                String value = rs.getString("Vrijednost_mjerenja");
+                measurements.add(new Measurement(time, value));
+            }
+            graphPanel.repaint();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error loading measurements: " + e.getMessage());
+        }
+    }
+
+    private class SubmitAction implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            try {
+                String glucoseValue = glucoseField.getText();
+                if (glucoseValue.isEmpty()) {
+                    JOptionPane.showMessageDialog(Mjerenje.this, "Please enter a glucose value");
+                    return;
+                }
+
+                // Validate numeric value
+                try {
+                    Double.parseDouble(glucoseValue);
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(Mjerenje.this, "Please enter a valid number");
+                    return;
+                }
+
+                // Insert into database
+                String query = "INSERT INTO MJERENJA (Vrijeme_mjerenja, Vrijednost_mjerenja, ID_user, ID_senzor) VALUES (?, ?, ?, ?)";
+                PreparedStatement stmt = connection.prepareStatement(query);
+                stmt.setTimestamp(1, new Timestamp(new Date().getTime()));
+                stmt.setString(2, glucoseValue);
+                stmt.setInt(3, currentUserId);
+                stmt.setInt(4, 1); // Assuming sensor ID 1 - adjust as needed
+
+                stmt.executeUpdate();
+                glucoseField.setText("");
+                loadMeasurements(); // Refresh graph with new data
+                
+                JOptionPane.showMessageDialog(Mjerenje.this, "Measurement saved successfully");
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(Mjerenje.this, "Error saving measurement: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    private class GraphPanel extends JPanel {
+        public GraphPanel() {
+            setBorder(BorderFactory.createTitledBorder("Glucose Measurements"));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g;
+            
+            if (measurements.isEmpty()) return;
+
+            int width = getWidth();
+            int height = getHeight();
+            int padding = 50;
+            int chartWidth = width - 2 * padding;
+            int chartHeight = height - 2 * padding;
+
+            // Draw axes
+            g2d.drawLine(padding, height - padding, width - padding, height - padding); // X-axis
+            g2d.drawLine(padding, height - padding, padding, padding); // Y-axis
+
+            // Find max glucose value for scaling
+            double maxValue = measurements.stream()
+                .mapToDouble(m -> Double.parseDouble(m.value))
+                .max()
+                .orElse(100);
+
+            // Draw bars
+            int barWidth = chartWidth / measurements.size();
+            for (int i = 0; i < measurements.size(); i++) {
+                Measurement m = measurements.get(i);
+                double value = Double.parseDouble(m.value);
+                int barHeight = (int) ((value / maxValue) * chartHeight);
+                
+                g2d.setColor(Color.BLUE);
+                g2d.fillRect(
+                    padding + i * barWidth,
+                    height - padding - barHeight,
+                    barWidth - 2,
+                    barHeight
+                );
+
+                // Draw time label (simplified)
+                String timeLabel = String.format("%tH:%tM", m.time, m.time);
+                g2d.setColor(Color.BLACK);
+                g2d.drawString(timeLabel, padding + i * barWidth, height - padding + 15);
+            }
+
+            // Draw Y-axis labels
+            g2d.drawString("0", padding - 20, height - padding);
+            g2d.drawString(String.valueOf((int) maxValue), padding - 30, padding);
+        }
+    }
+
+    private static class Measurement {
+        Date time;
+        String value;
+
+        public Measurement(Date time, String value) {
+            this.time = time;
+            this.value = value;
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new Mjerenja());
+    }
+}

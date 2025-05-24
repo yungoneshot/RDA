@@ -1,0 +1,57 @@
+package mediasist;
+
+import javax.swing.*;
+import java.awt.*;
+
+public class AppPage extends JFrame {
+    private String currentUsername;
+    private int currentUserId;
+
+    public AppPage(String username, int userId) {
+        super("MediAsist Dashboard");
+        this.currentUsername = username;
+        this.currentUserId = userId;
+        
+        setSize(500, 400);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        getContentPane().setLayout(null);
+
+        JLabel lblWelcome = new JLabel("Welcome, " + currentUsername + "!");
+        lblWelcome.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        lblWelcome.setBounds(150, 30, 200, 30);
+        getContentPane().add(lblWelcome);
+
+        JButton btnUnos = new JButton("Add Patient");
+        btnUnos.setBounds(150, 80, 200, 40);
+        getContentPane().add(btnUnos);
+        btnUnos.addActionListener(e -> {
+            new UnosPacijent(currentUserId).setVisible(true);
+            dispose();
+        });
+
+        JButton btnNotes = new JButton("Notes");
+        btnNotes.setBounds(150, 130, 200, 40);
+        getContentPane().add(btnNotes);
+        btnNotes.addActionListener(e -> {
+            new notes(currentUserId).setVisible(true);
+            dispose();
+        });
+
+        JButton btnContact = new JButton("Contact Us");
+        btnContact.setBounds(150, 180, 200, 40);
+        getContentPane().add(btnContact);
+        btnContact.addActionListener(e -> {
+            new ContactUs(currentUsername, currentUserId).setVisible(true);
+            dispose();
+        });
+
+        JButton btnLogout = new JButton("Logout");
+        btnLogout.setBounds(10, 10, 100, 30);
+        getContentPane().add(btnLogout);
+        btnLogout.addActionListener(e -> {
+            dispose();
+            new MainScreen().setVisible(true);
+        });
+    }
+}

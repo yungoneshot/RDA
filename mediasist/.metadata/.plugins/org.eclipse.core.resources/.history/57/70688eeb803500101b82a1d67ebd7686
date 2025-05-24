@@ -1,0 +1,69 @@
+package mediasist;
+
+import javax.swing.*;
+import java.awt.event.*;
+
+public class AppPage extends JFrame {
+    private String username;
+    private int userId;
+
+    public AppPage(String username, int userId) {
+        this.username = username;
+        this.userId = userId;
+
+        setTitle("Glavni izbornik");
+        setSize(600, 400);
+        setLayout(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        JButton btnPregledPacijenata = new JButton("Pregled pacijenata");
+        btnPregledPacijenata.setBounds(50, 50, 200, 40);
+        btnPregledPacijenata.addActionListener(e -> {
+            new pregledPacijenata(username, userId).setVisible(true);
+            dispose();
+        });
+        add(btnPregledPacijenata);
+
+        JButton btnUnosPacijenta = new JButton("Unos pacijenta");
+        btnUnosPacijenta.setBounds(50, 100, 200, 40);
+        btnUnosPacijenta.addActionListener(e -> {
+            new UnosPacijent(userId).setVisible(true);
+            dispose();
+        });
+        add(btnUnosPacijenta);
+
+        JButton btnReceptiUpute = new JButton("Unos recepta");
+        btnReceptiUpute.setBounds(50, 150, 200, 40);
+        btnReceptiUpute.addActionListener(e -> {
+            new ReceptiUpute(username, userId).setVisible(true);
+            dispose();
+        });
+        add(btnReceptiUpute);
+
+
+        JButton btnMjerenja = new JButton("Mjerenja");
+        btnMjerenja.setBounds(50, 200, 200, 40);
+        btnMjerenja.addActionListener(e -> {
+            new Mjerenja(userId).setVisible(true);
+            dispose();
+        });
+        add(btnMjerenja);
+
+        JButton btnBiljeske = new JButton("Bilješke");
+        btnBiljeske.setBounds(50, 250, 200, 40);
+        btnBiljeske.addActionListener(e -> {
+            new notes(username, userId).setVisible(true);
+            dispose();
+        });
+        add(btnBiljeske);
+
+        JButton btnKontakt = new JButton("Kontaktiraj nas");
+        btnKontakt.setBounds(50, 300, 200, 40);
+        btnKontakt.addActionListener(e -> {
+            new ContactUs(username, userId).setVisible(true);
+            dispose();
+        });
+        add(btnKontakt);
+    }
+}

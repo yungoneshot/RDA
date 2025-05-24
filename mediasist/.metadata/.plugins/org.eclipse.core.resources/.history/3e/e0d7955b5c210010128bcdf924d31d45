@@ -1,0 +1,154 @@
+package mediasist;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class notes extends JFrame {
+    private JTextArea notesArea;
+    private JComboBox<String> typeComboBox;
+    private String currentUsername;
+    private int pacijentId;
+    private JLabel statusLabel;
+
+    public notes(String username) {  // Updated constructor to take username
+        setTitle("Notes - " + username);
+        this.currentUsername = username;
+        this.pacijentId = getPatientId(username);
+        
+        setSize(600, 500);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setLocationRelativeTo(null);
+        getContentPane().setLayout(null);
+
+        // Note Type components
+        JLabel lblType = new JLabel("Note Type:");
+        lblType.setBounds(20, 20, 80, 25);
+        getContentPane().add(lblType);
+
+        typeComboBox = new JComboBox<>(new String[]{"Lijek", "Mjerenje", "Kontrola", "Ostalo"});
+        typeComboBox.setBounds(100, 20, 150, 25);
+        getContentPane().add(typeComboBox);
+
+        // Text area with scroll
+        notesArea = new JTextArea();
+        JScrollPane scrollPane = new JScrollPane(notesArea);
+        scrollPane.setBounds(20, 60, 550, 350);
+        getContentPane().add(scrollPane);
+
+        // Buttons
+        JButton btnSave = new JButton("Save");
+        btnSave.setBounds(150, 420, 100, 30);
+        btnSave.addActionListener(e -> saveNote());
+        getContentPane().add(btnSave);
+
+        JButton btnDone = new JButton("Done");
+        btnDone.setBounds(270, 420, 100, 30);
+        btnDone.addActionListener(e -> {
+            dispose();
+            new AppPage(currentUsername).setVisible(true);
+        });
+        getContentPane().add(btnDone);
+
+        // Status label
+        statusLabel = new JLabel();
+        statusLabel.setBounds(20, 460, 550, 25);
+        getContentPane().add(statusLabel);
+
+        loadNotes();  // Load existing notes for this user
+    }
+
+    private int getPatientId(String username) {
+        final String DB_URL = "jdbc:mysql://ucka.veleri.hr:3306/dsepic?useSSL=false&serverTimezone=UTC";
+        final String DB_USER = "dsepic";
+        final String DB_PW = "11";
+
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PW)) {
+            String sql = "SELECT id_user FROM PACIJENT WHERE username = ?";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, username);
+            
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("id_user");
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            statusLabel.setText("Error finding patient record");
+        }
+        return -1;
+    }
+
+    private void loadNotes() {
+        if (pacijentId == -1) return;
+        
+        final String DB_URL = "jdbc:mysql://ucka.veleri.hr:3306/dsepic?useSSL=false&serverTimezone=UTC";
+        final String DB_USER = "dsepic";
+        final String DB_PW = "11";
+
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PW)) {
+            String sql = "SELECT Vrijeme_podajetnika, Tekst_podajetnika, Vrsta_podajetnika " +
+                       "FROM podajetnika WHERE ID_Pacijent = ? ORDER BY Vrijeme_podajetnika DESC";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, pacijentId);
+            
+            ResultSet rs = ps.executeQuery();
+            StringBuilder notesText = new StringBuilder();
+            
+            while (rs.next()) {
+                notesText.append(String.format("[%s] %s: %s\n\n",
+                    new SimpleDateFormat("yyyy-MM-dd HH:mm").format(rs.getTimestamp("Vrijeme_podajetnika")),
+                    rs.getString("Vrsta_podajetnika"),
+                    rs.getString("Tekst_podajetnika")));
+            }
+            
+            notesArea.setText(notesText.toString());
+            statusLabel.setText("Loaded " + notesText.toString().split("\n\n").length + " notes");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            statusLabel.setText("Error loading notes: " + ex.getMessage());
+        }
+    }
+
+    private void saveNote() {
+        if (pacijentId == -1) {
+            statusLabel.setText("No patient record found");
+            return;
+        }
+        
+        String noteText = notesArea.getText().trim();
+        String noteType = (String) typeComboBox.getSelectedItem();
+        
+        if (noteText.isEmpty()) {
+            statusLabel.setText("Please enter note text");
+            return;
+        }
+
+        final String DB_URL = "jdbc:mysql://ucka.veleri.hr:3306/dsepic?useSSL=false&serverTimezone=UTC";
+        final String DB_USER = "dsepic";
+        final String DB_PW = "11";
+
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PW)) {
+            String sql = "INSERT INTO PODSJETNIK (Vrijeme_podsjetnika, Tekst_podsjetnika, Vrsta_podsjetnika, ID_Pacijent) " +
+                       "VALUES (?, ?, ?, ?)";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setTimestamp(1, new Timestamp(new Date().getTime()));
+            ps.setString(2, noteText);
+            ps.setString(3, noteType);
+            ps.setInt(4, pacijentId);
+            
+            int rows = ps.executeUpdate();
+            if (rows > 0) {
+                statusLabel.setText("Note saved successfully!");
+                loadNotes(); // Refresh the view
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            statusLabel.setText("Error saving note: " + ex.getMessage());
+        }
+    }
+}

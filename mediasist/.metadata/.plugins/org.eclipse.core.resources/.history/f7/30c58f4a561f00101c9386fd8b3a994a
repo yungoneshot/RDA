@@ -1,0 +1,86 @@
+package mediasist;
+
+import javax.swing.*;
+import java.awt.EventQueue;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+
+public class AppPage extends JFrame {
+
+    public AppPage() {
+        setTitle("Application Page");
+        setBounds(100, 100, 500, 400);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        getContentPane().setLayout(null);
+
+        JLabel lblWelcome = new JLabel("Welcome to the app!");
+        lblWelcome.setBounds(150, 150, 200, 50);
+        getContentPane().add(lblWelcome);
+        
+        JButton btnContact = new JButton("Kontaktiraje nas!");
+        btnContact.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        	}
+        });
+        btnContact.setBounds(321, 308, 153, 42);
+        getContentPane().add(btnContact);
+        
+               
+        btnContact.addActionListener((ActionEvent e) -> {
+            try {
+                dispose(); // Close main screen
+                ContactUs.main(null); 
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error opening Contact page.");
+            }
+        });
+        
+        JButton btnNotes = new JButton("Notes");
+        btnNotes.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        	}
+        });
+        btnNotes.setBounds(10, 308, 153, 42);
+        getContentPane().add(btnNotes);
+        
+        btnNotes.addActionListener((ActionEvent e) -> {
+            try {
+                dispose(); // Close main screen
+                notes.main(null); 
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error opening Notes page.");
+            }
+        });
+        
+        JButton btnInfo = new JButton("Info");
+        btnInfo.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        	}
+        });
+        btnInfo.setBounds(158, 308, 166, 42);
+        getContentPane().add(btnInfo);
+        
+        btnInfo.addActionListener((ActionEvent e) -> {
+            try {
+                dispose(); // Close main screen
+                notes.main(null); 
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error opening Info page.");
+            }
+        });
+    }
+
+    public static void main(String[] args) {
+        EventQueue.invokeLater(() -> {
+            try {
+                AppPage frame = new AppPage();
+                frame.setVisible(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+}

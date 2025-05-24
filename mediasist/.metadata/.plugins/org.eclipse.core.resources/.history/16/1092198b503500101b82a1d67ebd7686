@@ -1,0 +1,13 @@
+package mediasist;
+
+import java.awt.EventQueue;
+
+import javax.swing.*;
+
+public class prikazPacijent {
+	private JComboBox<String> typeComboBox;
+	private int currentUserId;
+	private JLabel userIme;
+	private JLabel userPrezime;
+	   	
+    };

@@ -1,0 +1,83 @@
+package mediasist;
+
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.*;
+
+public class UnosPacijent extends JFrame {
+
+    private JTextField imeField;
+    private JTextField prezimeField;
+    private JTextField dobField;
+    private JTextField spolField;
+    private JTextField usernameField;
+    private JButton saveButton;
+
+    private int idZdravstveniRadnik; // holds the foreign key
+
+    public UnosPacijent(int idZdravstveniRadnik) {
+        this.idZdravstveniRadnik = idZdravstveniRadnik;
+        initComponents();
+    }
+
+    private void initComponents() {
+        imeField = new JTextField(20);
+        prezimeField = new JTextField(20);
+        dobField = new JTextField(20);
+        spolField = new JTextField(10);
+        usernameField = new JTextField(20);
+        saveButton = new JButton("Save");
+
+        JPanel panel = new JPanel();
+        panel.add(new JLabel("Ime:"));
+        panel.add(imeField);
+        panel.add(new JLabel("Prezime:"));
+        panel.add(prezimeField);
+        panel.add(new JLabel("DOB (YYYY-MM-DD):"));
+        panel.add(dobField);
+        panel.add(new JLabel("Spol:"));
+        panel.add(spolField);
+        panel.add(new JLabel("Username:"));
+        panel.add(usernameField);
+        panel.add(saveButton);
+
+        add(panel);
+        pack();
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        saveButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                saveData();
+            }
+        });
+    }
+
+    private void saveData() {
+        String ime = imeField.getText();
+        String prezime = prezimeField.getText();
+        String dob = dobField.getText();
+        String spol = spolField.getText();
+        String username = usernameField.getText();
+
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/YOUR_DATABASE", "user", "password");
+             PreparedStatement stmt = conn.prepareStatement(
+                     "INSERT INTO pacijent (Ime_pacijent, Prezime_pacijent, DOB_Pacijent, Spol_pacijent, username, ID_Zdravstveni_radnik) VALUES (?, ?, ?, ?, ?, ?)")) {
+
+            stmt.setString(1, ime);
+            stmt.setString(2, prezime);
+            stmt.setDate(3, Date.valueOf(dob));
+            stmt.setString(4, spol);
+            stmt.setString(5, username);
+            stmt.setInt(6, idZdravstveniRadnik); // foreign key
+
+            stmt.executeUpdate();
+            JOptionPane.showMessageDialog(this, "Pacijent uspješno unesen.");
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Greška pri unosu: " + ex.getMessage());
+        }
+    }
+}
