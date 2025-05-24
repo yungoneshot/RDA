@@ -72,6 +72,14 @@ public class AppPage extends JFrame {
         });
         btnReceptiUpute.setBounds(280, 379, 200, 40);
         getContentPane().add(btnReceptiUpute);
+        
+        JButton btnpregledRecepta = new JButton("Pregled recepta");
+        btnpregledRecepta.addActionListener(e -> {
+        	new pregledRecepta(userId, username).setVisible(true);
+        	dispose();
+        });
+        btnpregledRecepta.setBounds(280, 430, 200, 40);
+        getContentPane().add(btnpregledRecepta);
     }
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new AppPage("TestKorisnik", 1));
